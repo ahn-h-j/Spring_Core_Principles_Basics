@@ -2,6 +2,7 @@ package hello.core.scope;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import jakarta.inject.Provider;
 import lombok.RequiredArgsConstructor;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Scope;
+
 
 public class SingletonWithPrototypeTest1 {
 
@@ -22,35 +24,6 @@ public class SingletonWithPrototypeTest1 {
         PrototypeBean prototypeBean2 = applicationContext.getBean(PrototypeBean.class);
         prototypeBean2.addCount();
         Assertions.assertThat(prototypeBean2.getCount()).isEqualTo(1);
-
-    }
-
-    @Test
-    void singletonClientUsePrototype(){
-        AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(ClientBean.class, PrototypeBean.class);
-
-        ClientBean clientBean1 = applicationContext.getBean(ClientBean.class);
-        int count1 = clientBean1.logic();
-        Assertions.assertThat(count1).isEqualTo(1);
-
-        ClientBean clientBean2 = applicationContext.getBean(ClientBean.class);
-        int count2 = clientBean2.logic();
-        Assertions.assertThat(count2).isEqualTo(2);
-
-    }
-
-    @Test
-    void singletonClientUsePrototypeWithProvider(){
-        AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(ClientBeanProperty.class, PrototypeBean.class);
-
-        ClientBeanProperty clientBean1 = applicationContext.getBean(ClientBeanProperty.class);
-        int count1 = clientBean1.logic();
-        Assertions.assertThat(count1).isEqualTo(1);
-
-        ClientBeanProperty clientBean2 = applicationContext.getBean(ClientBeanProperty.class);
-        int count2 = clientBean2.logic();
-        Assertions.assertThat(count2).isEqualTo(1);
-
     }
 
     @Scope("prototype")
@@ -74,6 +47,19 @@ public class SingletonWithPrototypeTest1 {
         private void destroy(){
             System.out.println("PrototypeBean.destroy");
         }
+    }
+
+    @Test
+    void singletonClientUsePrototype(){
+        AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(ClientBean.class, PrototypeBean.class);
+
+        ClientBean clientBean1 = applicationContext.getBean(ClientBean.class);
+        int count1 = clientBean1.logic();
+        Assertions.assertThat(count1).isEqualTo(1);
+
+        ClientBean clientBean2 = applicationContext.getBean(ClientBean.class);
+        int count2 = clientBean2.logic();
+        Assertions.assertThat(count2).isEqualTo(2);
 
     }
 
@@ -92,6 +78,20 @@ public class SingletonWithPrototypeTest1 {
         }
     }
 
+    @Test
+    void singletonClientUsePrototypeWithProvider(){
+        AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(ClientBeanProperty.class, PrototypeBean.class);
+
+        ClientBeanProperty clientBean1 = applicationContext.getBean(ClientBeanProperty.class);
+        int count1 = clientBean1.logic();
+        Assertions.assertThat(count1).isEqualTo(1);
+
+        ClientBeanProperty clientBean2 = applicationContext.getBean(ClientBeanProperty.class);
+        int count2 = clientBean2.logic();
+        Assertions.assertThat(count2).isEqualTo(1);
+
+    }
+
     @Scope("singleton")
     static class ClientBeanProperty{
         @Autowired
@@ -102,6 +102,33 @@ public class SingletonWithPrototypeTest1 {
             prototypeBean.addCount();
             return prototypeBean.getCount();
         }
+    }
+
+    @Test
+    void singletonClientUsePrototypeWithJavaXProvider(){
+        AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(ClientBeanJavaXProvider.class, PrototypeBean.class);
+
+        ClientBeanJavaXProvider clientBean1 = applicationContext.getBean(ClientBeanJavaXProvider.class);
+        int count1 = clientBean1.logic();
+        Assertions.assertThat(count1).isEqualTo(1);
+
+        ClientBeanJavaXProvider clientBean2 = applicationContext.getBean(ClientBeanJavaXProvider.class);
+        int count2 = clientBean2.logic();
+        Assertions.assertThat(count2).isEqualTo(1);
+
+    }
+
+    @Scope("singleton")
+    static class ClientBeanJavaXProvider{
+        @Autowired
+        private Provider<PrototypeBean> prototypeBeanProvider;
+
+        public int logic(){
+            PrototypeBean prototypeBean = prototypeBeanProvider.get();
+            prototypeBean.addCount();
+            return prototypeBean.getCount();
+        }
+
     }
 }
 
