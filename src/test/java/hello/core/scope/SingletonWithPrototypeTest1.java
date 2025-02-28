@@ -5,6 +5,7 @@ import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Scope;
@@ -35,6 +36,20 @@ public class SingletonWithPrototypeTest1 {
         ClientBean clientBean2 = applicationContext.getBean(ClientBean.class);
         int count2 = clientBean2.logic();
         Assertions.assertThat(count2).isEqualTo(2);
+
+    }
+
+    @Test
+    void singletonClientUsePrototypeWithProvider(){
+        AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(ClientBeanProperty.class, PrototypeBean.class);
+
+        ClientBeanProperty clientBean1 = applicationContext.getBean(ClientBeanProperty.class);
+        int count1 = clientBean1.logic();
+        Assertions.assertThat(count1).isEqualTo(1);
+
+        ClientBeanProperty clientBean2 = applicationContext.getBean(ClientBeanProperty.class);
+        int count2 = clientBean2.logic();
+        Assertions.assertThat(count2).isEqualTo(1);
 
     }
 
@@ -72,6 +87,18 @@ public class SingletonWithPrototypeTest1 {
         }
 
         public int logic(){
+            prototypeBean.addCount();
+            return prototypeBean.getCount();
+        }
+    }
+
+    @Scope("singleton")
+    static class ClientBeanProperty{
+        @Autowired
+        private ObjectProvider<PrototypeBean> prototypeBeanObjectProvider;
+
+        public int logic(){
+            PrototypeBean prototypeBean = prototypeBeanObjectProvider.getObject();
             prototypeBean.addCount();
             return prototypeBean.getCount();
         }
